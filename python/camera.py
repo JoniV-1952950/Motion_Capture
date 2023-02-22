@@ -3,7 +3,7 @@ import time
 import numpy as np
 import cv2 as cv
 
-intrinsic_filename = "../cam_mtxs/intrinsic.npz"
+intrinsic_filename = "home/pi/Motion_Capture/cam_mtxs/intrinsic.npz"
 
 chessboardPattern = (11,8)
 minimumNumberOfChessPatterns = 20
@@ -21,12 +21,16 @@ def save_intrinsic(loc_mtx, loc_dist, loc_newcameramtx, loc_roi):
 
 # # # # # # # # # # # # # # # 
 def load_intrinsic():
-    container = np.load(intrinsic_filename)
-    loc_mtx = container["mtx"]
-    loc_dist = container["dist"]
-    loc_newcameramtx = container["newcameramtx"]
-    loc_roi = container["roi"]
-    return loc_mtx, loc_dist, loc_newcameramtx, loc_roi
+    try:
+        container = np.load(intrinsic_filename)
+        loc_mtx = container["mtx"]
+        loc_dist = container["dist"]
+        loc_newcameramtx = container["newcameramtx"]
+        loc_roi = container["roi"]
+        return loc_mtx, loc_dist, loc_newcameramtx, loc_roi
+    except Exception as e:
+        print("File does not exist")
+        return None, None, None, None
 # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # 
@@ -96,11 +100,11 @@ def cam_setup():
 # # # # # # # # # # # # # # # # # 
 
 # # # # # # # # # # # # # # # # # 
-def undistorted():
-    if mtx is not None:
-        img = cam.capture_array()
-        img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+def frame():
+    img = cam.capture_array()
+    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    if mtx is not None:    
         undistorted_img = cv.undistort(img, mtx, dist, None, newcameramtx) 
         return undistorted_img
-    return None
+    return img
 # # # # # # # # # # # # # # # # #

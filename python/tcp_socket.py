@@ -1,14 +1,13 @@
 import select
 import socket
 from msg_handler import msg_handler
-import netifaces as ni
 import time
 
 my_socket = None
 
 # use argument for port number
 port = 5000
-host = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
+host = ''
 
 # hardcoded server address
 serverHost = "192.168.0.1"
