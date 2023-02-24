@@ -1,7 +1,7 @@
 import os
 import psutil
 import sys
-sys.path.append("/home/pi/Motion_Capture/python/")
+sys.path.append("/home/pi/Motion_Capture/python/app")
 from MSG_KIND import MSG_KIND
 import socket
 
@@ -11,16 +11,19 @@ def msg_handler(msg, sock):
     if msg == MSG_KIND.UPDATE.value:
         #stop_app()
         os.chdir("/home/pi/Motion_Capture/python")
-        len_data = int.from_bytes(recvall(sock, 4), 'little')
-        fileinfo = recvall(sock, len_data).decode()
-        print(fileinfo)
-        filename, filesize = fileinfo.split('/')
-        filename = os.path.basename(filename)
-        filesize = int(filesize)
+        len_files = int.from_bytes(recvall(sock, 4), 'little')
         
-        with open(filename, "wb") as f:
-            bytes_read = recvall(sock, filesize)
-            f.write(bytes_read)
+        for i in range(len_files):
+            len_data = int.from_bytes(recvall(sock, 4), 'little')
+            fileinfo = recvall(sock, len_data).decode()
+            print(fileinfo)
+            filename, filesize = fileinfo.split(';')
+            filename = os.path.basename(filename)
+            filesize = int(filesize)
+            
+            with open(filename, "wb") as f:
+                bytes_read = recvall(sock, filesize)
+                f.write(bytes_read)
         
     elif msg == MSG_KIND.REBOOT.value:
         os.system("reboot")
