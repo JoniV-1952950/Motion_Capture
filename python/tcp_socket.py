@@ -82,3 +82,4 @@ def socket_sender(data):
         print("Something went wrong reading data. Exception: %s" % (e,))
 # # # # # # # # # # # # # 
       
+ 

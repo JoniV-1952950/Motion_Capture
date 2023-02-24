@@ -57,7 +57,7 @@ def socket_receiver(port):
             if len(readable) > 0 :
                 try:
                     data = my_socket.recv(4).decode('utf-8') # Wait for, and then receive, incoming data
-                    send_data = msg_handler(data)
+                    send_data = msg_handler(data, my_socket)
                     if send_data:
                         my_socket.sendall(send_data)
                 except socket.error as ConnectionResetError:

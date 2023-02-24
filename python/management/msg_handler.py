@@ -3,14 +3,25 @@ import psutil
 import sys
 sys.path.append("/home/pi/Motion_Capture/python/")
 from MSG_KIND import MSG_KIND
+import socket
 
 # # # # # # # # # # # # 
-def msg_handler(msg):
+def msg_handler(msg, sock):
     print(msg)
     if msg == MSG_KIND.UPDATE.value:
-        stop_app()
-        os.chdir("/home/pi/Motion_Capture")
-        os.system("git pull")
+        #stop_app()
+        os.chdir("/home/pi/Motion_Capture/python")
+        len_data = int.from_bytes(recvall(sock, 4), 'little')
+        fileinfo = recvall(sock, len_data).decode()
+        print(fileinfo)
+        filename, filesize = fileinfo.split('/')
+        filename = os.path.basename(filename)
+        filesize = int(filesize)
+        
+        with open(filename, "wb") as f:
+            bytes_read = recvall(sock, filesize)
+            f.write(bytes_read)
+        
     elif msg == MSG_KIND.REBOOT.value:
         os.system("reboot")
     elif msg == MSG_KIND.SHUTDOWN.value:
@@ -28,3 +39,13 @@ def stop_app():
         if "python" in procname and procpid != str(os.getpid()):
             proc.kill()
 
+# # # # # # # # # # # # # 
+
+def recvall(sock, n):
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
