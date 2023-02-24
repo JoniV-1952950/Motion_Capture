@@ -5,6 +5,8 @@ import cv2 as cv
 
 intrinsic_filename = "home/pi/Motion_Capture/cam_mtxs/intrinsic.npz"
 
+img_size = (1280,720)
+
 chessboardPattern = (11,8)
 minimumNumberOfChessPatterns = 20
 
@@ -91,7 +93,7 @@ def cam_setup():
     global cam, mtx, dist, newcameramtx, roi
     # set up picamera
     cam = Picamera2()
-    cam_config = cam.create_still_configuration(main={"size": (1280, 720)}, lores={"size":(640, 480)}, display="lores")
+    cam_config = cam.create_video_configuration({"format":"YUV420", "size":img_size},lores={"size":(640, 480)}, display="lores")
     cam.configure(cam_config)
     cam.start_preview(Preview.QTGL)
     cam.start()
@@ -102,7 +104,7 @@ def cam_setup():
 # # # # # # # # # # # # # # # # # 
 def frame():
     img = cam.capture_array()
-    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    img = img[:img_size[1]]
     if mtx is not None:    
         undistorted_img = cv.undistort(img, mtx, dist, None, newcameramtx) 
         return undistorted_img
