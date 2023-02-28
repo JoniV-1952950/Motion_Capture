@@ -3,6 +3,7 @@ import socket
 from msg_handler import msg_handler
 import time
 
+
 my_socket = None
 
 # hardcoded server address

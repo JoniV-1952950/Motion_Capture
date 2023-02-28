@@ -16,9 +16,7 @@ def msg_handler(msg, sock):
         for i in range(len_files):
             len_data = int.from_bytes(recvall(sock, 4), 'little')
             fileinfo = recvall(sock, len_data).decode()
-            print(fileinfo)
             filename, filesize = fileinfo.split(';')
-            filename = os.path.basename(filename)
             filesize = int(filesize)
             
             with open(filename, "wb") as f:
