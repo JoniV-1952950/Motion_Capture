@@ -9,10 +9,15 @@ my_socket = None
 serverHost = "192.168.0.1"
 serverPort = 5000
 
-# # # # # # # # # # # # # 
+nrOfRetries = 0
+maxRetries = 10
+#############################################
 def create_socket(port):
-    global my_socket, serverHost, serverPort
+    global my_socket, serverHost, serverPort, nrOfRetries
     
+    nrOfRetries += 1
+    if nrOfRetries > maxRetries:
+        exit(1)    
     host = ""
     # try to create a new socket with the given address
     try:
@@ -22,11 +27,19 @@ def create_socket(port):
         print("Something went wrong. Exception: %s, retrying in 3 sec" % (e,))
         my_socket.close()
         time.sleep(3)
+        port -= 1
         create_socket(port)
-# # # # # # # # # # # # #    
+#############################################
 
-# # # # # # # # # # # # #
+
+#############################################
 def connect_socket():
+    global my_socket, serverHost, serverPort, nrOfRetries
+    
+    nrOfRetries += 1
+    if nrOfRetries >= maxRetries:
+        exit(1)
+    
     # try to connect to the server
     try:
         my_socket.connect((serverHost, serverPort))
@@ -39,9 +52,10 @@ def connect_socket():
         print("Something went wrong. Exception %s, retrying in 3 sec" % (e,))
         time.sleep(3)
         connect_socket()
-# # # # # # # # # # # # # 
+#############################################
 
-# # # # # # # # # # # # # 
+
+#############################################
 def socket_receiver(port):
     global my_socket
     try:
@@ -54,31 +68,41 @@ def socket_receiver(port):
             readable, writeable, exceptional = select.select([my_socket], [], [my_socket])
             
             # if there is a socket in the readable list (can only be s), read the data and print it
-            if len(readable) > 0 :
-                try:
-                    data = my_socket.recv(4).decode('utf-8') # Wait for, and then receive, incoming data
-                    send_data = msg_handler(data, my_socket)
-                    if send_data:
-                        my_socket.sendall(send_data)
-                except socket.error as ConnectionResetError:
-                    print("Connection reset by peer: retrying in 3 sec")
-                    time.sleep(3)
-                    my_socket.close()
-                    create_socket(port)
-                    connect_socket()
-                except socket.error as e:
-                    print("Something went wrong reading data. Exception: %s" % (e,))
+            try:
+                data = my_socket.recv(4).decode('utf-8') # Wait for, and then receive, incoming data
+                msg_handler(data, my_socket)
+            except ConnectionResetError:
+                print("Connection reset by peer: retrying in 3 sec")
+                time.sleep(3)
+                my_socket.close()
+                create_socket(port)
+                connect_socket()
+            except socket.error as e:
+                print("Something went wrong reading data. Exception: %s" % (e,))
     finally:
         my_socket.detach()
         my_socket.close()
-# # # # # # # # # # # # #
+#############################################
 
-# # # # # # # # # # # # #
-def socket_sender(data):
+
+#############################################
+def recvall(sock, n):
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
+#############################################
+
+
+#############################################
+def send(data):
     global my_socket
     try:
-        my_socket.sendall(data.encode('utf-8'))
+        my_socket.sendall(data)
     except socket.error as e:
         print("Something went wrong reading data. Exception: %s" % (e,))
-# # # # # # # # # # # # # 
+#############################################
       
